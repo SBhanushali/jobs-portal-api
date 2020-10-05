@@ -10,7 +10,7 @@ let app = express();
 app.use(cors());
 
 // Import routes
-// let apiRoutes = require("./routes/index");
+let apiRoutes = require("./routes/index");
 
 // Parse JSON bodies
 app.use(express.json());
@@ -28,7 +28,7 @@ mongoose
 var port = process.env.PORT || 8080;
 
 // Use Api routes in the App
-// app.use("/", apiRoutes);
+app.use("/", apiRoutes);
 
 // Launch app to listen to port
 app.listen(port, () => {

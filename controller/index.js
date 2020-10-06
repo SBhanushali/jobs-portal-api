@@ -36,7 +36,7 @@ exports.createJob = (req, res) => {
       .then(() => {
         res.status(201).json({
           success: true,
-          message: "Question created",
+          message: "Job created",
         });
       })
       .catch(() => {
@@ -46,7 +46,7 @@ exports.createJob = (req, res) => {
         });
       });
   } else {
-    res.status(404).json({
+    res.status(400).json({
       success: false,
       data: "Error some fields missing",
     });
@@ -65,7 +65,7 @@ exports.createJob = (req, res) => {
  */
 
 exports.searchJobs = (req, res) => {
-  if (req.query.location && req.query["search-term"]) {
+  if (req.query.location && req.query["search-term"].split(",") <= 3) {
     const location = req.query.location;
     const queryObj = searchParamsToQueryObj(location);
     const searchTerm = req.query["search-term"].split(",");
@@ -98,7 +98,7 @@ exports.searchJobs = (req, res) => {
   } else if (req.query.location) {
     const location = req.query.location;
     const queryObj = searchParamsToQueryObj(location);
-    console.log("Query obj", queryObj);
+
     Jobs.find(queryObj)
       .then((docs) => {
         res.status(200).json({
@@ -107,7 +107,10 @@ exports.searchJobs = (req, res) => {
         });
       })
       .catch((err) => console.log(err));
-  } else if (req.query["search-term"]) {
+  } else if (
+    req.query["search-term"] !== "" &&
+    req.query["search-term"].split(",").length <= 3
+  ) {
     const searchTerm = req.query["search-term"].split(",");
     Jobs.aggregate([
       { $match: { skills: { $in: searchTerm } } },
@@ -135,9 +138,16 @@ exports.searchJobs = (req, res) => {
       })
       .catch((err) => console.log(err));
   } else {
-    res.status(404).json({
-      success: false,
-      data: "Error some fields missing",
-    });
+    if (req.query["search-term"].split(",").length > 3) {
+      res.status(400).json({
+        success: false,
+        data: "Skills keyword should be less than or equal to 3",
+      });
+    } else {
+      res.status(400).json({
+        success: false,
+        data: "Fields empty",
+      });
+    }
   }
 };

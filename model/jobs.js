@@ -27,6 +27,7 @@ const jobsSchema = mongoose.Schema({
       required: true,
     },
   ],
+  createdAt: { type: Date, default: Date.now },
 });
 
 const Jobs = mongoose.model("Jobs", jobsSchema);

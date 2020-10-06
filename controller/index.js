@@ -1,9 +1,10 @@
+const { searchParamsToQueryObj } = require("../helper");
 // Import jobs model
 const Jobs = require("../model/jobs");
 
 // Handle Job creation request
 /**
- * @api {post} /api/job Create job
+ * @api {post} /job Create job
  * @apiName Create new job
  *
  * @apiParam  {String} [companyName] company name
@@ -44,6 +45,95 @@ exports.createJob = (req, res) => {
           data: "Module name should be unique",
         });
       });
+  } else {
+    res.status(404).json({
+      success: false,
+      data: "Error some fields missing",
+    });
+  }
+};
+
+// Handle get jobs
+/**
+ * @api {get} /job?location=""&search-term="" Create job
+ * @apiName Search for jobs
+ *
+ * @apiParam  {String} [location] location
+ * @apiParam  {String} [search-term] skills search term
+ *
+ * @apiSuccess (200) Jobs found
+ */
+
+exports.searchJobs = (req, res) => {
+  if (req.query.location && req.query["search-term"]) {
+    const location = req.query.location;
+    const queryObj = searchParamsToQueryObj(location);
+    const searchTerm = req.query["search-term"].split(",");
+    Jobs.aggregate([
+      { $match: { queryObj } },
+      { $match: { skills: { $in: searchTerm } } },
+      {
+        $project: {
+          companyName: 1,
+          jobTitle: 1,
+          location: 1,
+          jobDescription: 1,
+          skills: 1,
+          order: {
+            $size: {
+              $setIntersection: [searchTerm, $skills],
+            },
+          },
+        },
+      },
+      { $sort: { order: -1 } },
+    ])
+      .then((docs) => {
+        res.status(200).json({
+          success: true,
+          data: docs,
+        });
+      })
+      .catch((err) => console.log(err));
+  } else if (req.query.location) {
+    const location = req.query.location;
+    const queryObj = searchParamsToQueryObj(location);
+    console.log("Query obj", queryObj);
+    Jobs.find(queryObj)
+      .then((docs) => {
+        res.status(200).json({
+          success: true,
+          data: docs,
+        });
+      })
+      .catch((err) => console.log(err));
+  } else if (req.query["search-term"]) {
+    const searchTerm = req.query["search-term"].split(",");
+    Jobs.aggregate([
+      { $match: { skills: { $in: searchTerm } } },
+      {
+        $project: {
+          companyName: 1,
+          jobTitle: 1,
+          location: 1,
+          jobDescription: 1,
+          skills: 1,
+          order: {
+            $size: {
+              $setIntersection: [searchTerm, "$skills"],
+            },
+          },
+        },
+      },
+      { $sort: { order: -1 } },
+    ])
+      .then((docs) => {
+        res.status(200).json({
+          success: true,
+          data: docs,
+        });
+      })
+      .catch((err) => console.log(err));
   } else {
     res.status(404).json({
       success: false,

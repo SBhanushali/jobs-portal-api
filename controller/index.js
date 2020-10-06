@@ -65,7 +65,7 @@ exports.createJob = (req, res) => {
  */
 
 exports.searchJobs = (req, res) => {
-  if (req.query.location && req.query["search-term"].split(",") <= 3) {
+  if (req.query.location && req.query["search-term"]?.split(",") <= 3) {
     const location = req.query.location;
     const queryObj = searchParamsToQueryObj(location);
     const searchTerm = req.query["search-term"].split(",");

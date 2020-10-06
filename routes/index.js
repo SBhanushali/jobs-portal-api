@@ -1,4 +1,4 @@
-const { createJob } = require("../controller");
+const { createJob, searchJobs } = require("../controller");
 
 //Initialize express router
 const router = require("express").Router();
@@ -13,5 +13,8 @@ router.get("/", (req, res) => {
 
 // Create job
 router.post("/jobs", createJob);
+
+// Search for job
+router.get("/jobs", searchJobs);
 
 module.exports = router;
